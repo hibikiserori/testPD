@@ -1,76 +1,73 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>個別ページビューカウンタ</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アクセスカウント</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
 </head>
 <body>
-    <h1>TABETEの利用回数</h1>
-    <p>あなたはTABETEを <span id="viewCount">0</span> 回利用しました。</p>
+  <h1>サイトアクセスカウンター</h1>
+  <label for="userId">ユーザーIDを入力してください:</label>
+  <input type="text" id="userId" placeholder="例: user123">
+  <button onclick="registerAccess()">アクセスを記録</button>
+  <p id="message"></p>
 
-    <script>
-        let userViewCount = localStorage.getItem('userViewCount');
+  <script>
+    // Firebaseの設定情報（コンソールで発行された情報に置き換えてください）
+    const firebaseConfig = {
+      apiKey: "your-api-key",
+      authDomain: "your-auth-domain",
+      projectId: "your-project-id",
+      storageBucket: "your-storage-bucket",
+      messagingSenderId: "your-messaging-sender-id",
+      appId: "your-app-id"
+    };
 
-        if (!userViewCount) {
-            userViewCount = 0;
-        }
+    // Firebaseを初期化
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        userViewCount++;
-        localStorage.setItem('userViewCount', userViewCount);
+    // ユーザーIDをもとにアクセス回数を記録する関数
+    async function registerAccess() {
+      const userId = document.getElementById('userId').value;
+      const messageEl = document.getElementById('message');
 
-        document.getElementById('viewCount').textContent = userViewCount;
-    </script>
-</body>
-<!-- Firebase App (FirebaseのJavaScript SDK) -->
-<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
-
-<script>
-  // Firebaseの設定情報（プロジェクトで発行されたAPI情報をここに設定）
-  const firebaseConfig = {
-    apiKey: "your-api-key",
-    authDomain: "your-auth-domain",
-    projectId: "your-project-id",
-    storageBucket: "your-storage-bucket",
-    messagingSenderId: "your-messaging-sender-id",
-    appId: "your-app-id"
-  };
-
-  // Firebaseを初期化
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const auth = firebase.auth();
-
-  // 匿名認証でサインイン
-  auth.signInAnonymously().then((userCredential) => {
-    const user = userCredential.user;
-
-    // データベースにアクセス情報を追加
-    const userRef = db.collection('users').doc(user.uid);
-
-    userRef.get().then((doc) => {
-      if (doc.exists) {
-        // 既存ユーザーの場合、アクセス回数を更新
-        userRef.update({
-          accessCount: firebase.firestore.FieldValue.increment(1)
-        });
-      } else {
-        // 初回アクセスの場合、ユーザー情報を新規追加
-        userRef.set({
-          accessCount: 1,
-          lastAccess: firebase.firestore.FieldValue.serverTimestamp()
-        });
+      if (!userId) {
+        messageEl.innerText = 'ユーザーIDを入力してください';
+        return;
       }
-    });
-  });
-</script>
 
+      try {
+        // ユーザーIDのドキュメント参照を取得
+        const userRef = db.collection('users').doc(userId);
+
+        // データベース内にユーザーが存在するか確認
+        const doc = await userRef.get();
+
+        if (doc.exists) {
+          // ユーザーが存在する場合、アクセス回数を1増加
+          await userRef.update({
+            accessCount: firebase.firestore.FieldValue.increment(1),
+            lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          messageEl.innerText = `ようこそ ${userId} さん！アクセス回数: ${doc.data().accessCount + 1}`;
+        } else {
+          // 初回アクセスの場合、ユーザー情報を新規作成
+          await userRef.set({
+            accessCount: 1,
+            lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          messageEl.innerText = `初めまして ${userId} さん！初回アクセスです。`;
+        }
+      } catch (error) {
+        console.error("アクセス記録エラー:", error);
+        messageEl.innerText = "エラーが発生しました。再度お試しください。";
+      }
+    }
+  </script>
+</body>
 </html>
+
