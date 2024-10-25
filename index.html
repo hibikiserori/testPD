@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>個別ページビューカウンタ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>TABETEの利用回数</h1>
+    <p>あなたはTABETEを <span id="viewCount">0</span> 回利用しました。</p>
+
+    <script>
+        let userViewCount = localStorage.getItem('userViewCount');
+
+        if (!userViewCount) {
+            userViewCount = 0;
+        }
+
+        userViewCount++;
+        localStorage.setItem('userViewCount', userViewCount);
+
+        document.getElementById('viewCount').textContent = userViewCount;
+    </script>
+</body>
+</html>
