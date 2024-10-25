@@ -28,4 +28,49 @@
         document.getElementById('viewCount').textContent = userViewCount;
     </script>
 </body>
+<!-- Firebase App (FirebaseのJavaScript SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
+
+<script>
+  // Firebaseの設定情報（プロジェクトで発行されたAPI情報をここに設定）
+  const firebaseConfig = {
+    apiKey: "your-api-key",
+    authDomain: "your-auth-domain",
+    projectId: "your-project-id",
+    storageBucket: "your-storage-bucket",
+    messagingSenderId: "your-messaging-sender-id",
+    appId: "your-app-id"
+  };
+
+  // Firebaseを初期化
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  // 匿名認証でサインイン
+  auth.signInAnonymously().then((userCredential) => {
+    const user = userCredential.user;
+
+    // データベースにアクセス情報を追加
+    const userRef = db.collection('users').doc(user.uid);
+
+    userRef.get().then((doc) => {
+      if (doc.exists) {
+        // 既存ユーザーの場合、アクセス回数を更新
+        userRef.update({
+          accessCount: firebase.firestore.FieldValue.increment(1)
+        });
+      } else {
+        // 初回アクセスの場合、ユーザー情報を新規追加
+        userRef.set({
+          accessCount: 1,
+          lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    });
+  });
+</script>
+
 </html>
