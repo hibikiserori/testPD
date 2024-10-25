@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>アクセスカウント</title>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/.720.0/firebase-firestore.js"></script>
+  <!-- Firebase SDKの読み込み -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js" defer></script>
 </head>
 <body>
   <h1>サイトアクセスカウンター</h1>
@@ -15,7 +15,8 @@
   <button onclick="registerAccess()">アクセスを記録</button>
   <p id="message"></p>
 
-  <script>
+  <!-- Firebase初期化スクリプト -->
+ <script>
     // Firebaseの設定情報（コンソールで発行された情報に置き換えてください）
     const firebaseConfig = {
       apiKey: "AIzaSyCm8z6G8Hqu6NsTqNaFk4Ec5d8C8sAC0LU",
@@ -26,8 +27,10 @@
       appId: "G-BQN7Q4TQ3J"
     };
 
-    // Firebaseを初期化
-    const app = firebase.initializeApp(firebaseConfig);
+    // Firebaseの初期化
+    firebase.initializeApp(firebaseConfig);
+
+    // Firestoreの初期化
     const db = firebase.firestore();
 
     // ユーザーIDをもとにアクセス回数を記録する関数
@@ -70,4 +73,5 @@
   </script>
 </body>
 </html>
+
 
