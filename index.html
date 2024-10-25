@@ -5,20 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>アクセスカウント</title>
   <!-- Firebase SDKの読み込み -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js" defer></script>
-</head>
-<body>
-  <h1>サイトアクセスカウンター</h1>
-  <label for="userId">ユーザーIDを入力してください:</label>
-  <input type="text" id="userId" placeholder="例: user123">
-  <button onclick="registerAccess()">アクセスを記録</button>
-  <p id="message"></p>
+  <script type="module">
+    // Firebase v9用モジュールのインポート
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-  <!-- Firebase初期化スクリプト -->
- <script>
-    // Firebaseの設定情報（コンソールで発行された情報に置き換えてください）
-    const firebaseConfig = {
+    // Firebaseの設定情報
+       const firebaseConfig = {
       apiKey: "AIzaSyCm8z6G8Hqu6NsTqNaFk4Ec5d8C8sAC0LU",
       authDomain: "projectpd-56b02.firebaseapp.com",
       projectId: "projectpd-56b02",
@@ -28,10 +21,10 @@
     };
 
     // Firebaseの初期化
-    firebase.initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
 
     // Firestoreの初期化
-    const db = firebase.firestore();
+    const db = getFirestore(app);
 
     // ユーザーIDをもとにアクセス回数を記録する関数
     async function registerAccess() {
@@ -45,23 +38,23 @@
 
       try {
         // ユーザーIDのドキュメント参照を取得
-        const userRef = db.collection('users').doc(userId);
+        const userRef = doc(db, 'users', userId);
 
         // データベース内にユーザーが存在するか確認
-        const doc = await userRef.get();
+        const docSnap = await getDoc(userRef);
 
-        if (doc.exists) {
+        if (docSnap.exists()) {
           // ユーザーが存在する場合、アクセス回数を1増加
-          await userRef.update({
-            accessCount: firebase.firestore.FieldValue.increment(1),
-            lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+          await updateDoc(userRef, {
+            accessCount: increment(1),
+            lastAccess: serverTimestamp()
           });
-          messageEl.innerText = `ようこそ ${userId} さん！アクセス回数: ${doc.data().accessCount + 1}`;
+          messageEl.innerText = `ようこそ ${userId} さん！アクセス回数: ${docSnap.data().accessCount + 1}`;
         } else {
           // 初回アクセスの場合、ユーザー情報を新規作成
-          await userRef.set({
+          await setDoc(userRef, {
             accessCount: 1,
-            lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+            lastAccess: serverTimestamp()
           });
           messageEl.innerText = `初めまして ${userId} さん！初回アクセスです。`;
         }
@@ -70,8 +63,17 @@
         messageEl.innerText = "エラーが発生しました。再度お試しください。";
       }
     }
+
+    // registerAccess関数をグローバルにアクセスできるように設定
+    window.registerAccess = registerAccess;
   </script>
+</head>
+<body>
+  <h1>サイトアクセスカウンター</h1>
+  <label for="userId">ユーザーIDを入力してください:</label>
+  <input type="text" id="userId" placeholder="例: user123">
+  <button onclick="registerAccess()">アクセスを記録</button>
+  <p id="message"></p>
 </body>
 </html>
-
 
