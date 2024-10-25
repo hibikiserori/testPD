@@ -77,3 +77,85 @@
 </body>
 </html>
 
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アクセスカウント</title>
+  <!-- Firebase SDKの読み込み -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js" defer></script>
+</head>
+<body>
+  <h1>サイトアクセスカウンター</h1>
+  <label for="userId">ユーザーIDを入力してください:</label>
+  <input type="text" id="userId" placeholder="例: user123">
+  <button onclick="registerAccess()">アクセスを記録</button>
+  <p id="message"></p>
+
+  <!-- Firebase初期化スクリプト -->
+  <script defer>
+    // Firebaseの設定情報
+    const firebaseConfig = {
+       const firebaseConfig = {
+      apiKey: "AIzaSyCm8z6G8Hqu6NsTqNaFk4Ec5d8C8sAC0LU",
+      authDomain: "projectpd-56b02.firebaseapp.com",
+      projectId: "projectpd-56b02",
+      storageBucket: "projectpd-56b02.appspot.com",
+      messagingSenderId: "149644853665",
+      appId: "G-BQN7Q4TQ3J"
+    };
+    };
+
+    // Firebaseの初期化
+    firebase.initializeApp(firebaseConfig);
+
+    // Firestoreの初期化
+    const db = firebase.firestore();
+
+    // ユーザーIDをもとにアクセス回数を記録する関数
+    async function registerAccess() {
+      const userId = document.getElementById('userId').value;
+      const messageEl = document.getElementById('message');
+
+      if (!userId) {
+        messageEl.innerText = 'ユーザーIDを入力してください';
+        return;
+      }
+
+      try {
+        // ユーザーIDのドキュメント参照を取得
+        const userRef = db.collection('users').doc(userId);
+
+        // データベース内にユーザーが存在するか確認
+        const doc = await userRef.get();
+
+        if (doc.exists) {
+          // ユーザーが存在する場合、アクセス回数を1増加
+          await userRef.update({
+            accessCount: firebase.firestore.FieldValue.increment(1),
+            lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          messageEl.innerText = `ようこそ ${userId} さん！アクセス回数: ${doc.data().accessCount + 1}`;
+        } else {
+          // 初回アクセスの場合、ユーザー情報を新規作成
+          await userRef.set({
+            accessCount: 1,
+            lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          messageEl.innerText = `初めまして ${userId} さん！初回アクセスです。`;
+        }
+      } catch (error) {
+        console.error("アクセス記録エラー:", error);
+        messageEl.innerText = "エラーが発生しました。再度お試しください。";
+      }
+    }
+  </script>
+</body>
+</html>
+
+
